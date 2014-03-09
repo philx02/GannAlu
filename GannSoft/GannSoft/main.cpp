@@ -87,7 +87,12 @@ int main()
 
   typedef decltype(wGa.begin()) RatedIndividualIterator;
 
-  wGa.runGenerations(1000000, fitnessFunction< Ann >, reproductionFunction< Ann, RatedIndividualIterator >, [](RatedIndividualIterator iBegin, RatedIndividualIterator iEnd) {}, [](RatedIndividualIterator iBegin, RatedIndividualIterator iEnd) {return true; });
+  auto wReproductionFunction = [&](RatedIndividualIterator iBegin, RatedIndividualIterator iEnd)
+  {
+    return reproductionFunction< Ann, RatedIndividualIterator >(iBegin, iEnd, wMt19937);
+  };
+
+  wGa.runGenerations(1000000, fitnessFunction< Ann >, wReproductionFunction, [](RatedIndividualIterator iBegin, RatedIndividualIterator iEnd) {}, [](RatedIndividualIterator iBegin, RatedIndividualIterator iEnd) {return true; });
 
   return 0;
 }
