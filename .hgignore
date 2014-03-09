@@ -1,0 +1,15 @@
+syntax: glob
+bin/
+Debug/
+Release/
+obj/
+*.suo
+lib/
+*.sdf
+*.opensdf
+*.user
+*.ipch
+project-config.jam
+*.pb.cc
+*.pb.h
+*.log
