@@ -1,31 +1,62 @@
 #pragma once
 
 template< typename Ann, typename RandomNumberGenerator >
-Ann cloneAndMutate(const Ann &iSource, RandomNumberGenerator &iRandomNumberGenerator)
+void mutateWeights(Ann &iAnn, RandomNumberGenerator &iRandomNumberGenerator)
 {
   static auto wWeightMutationDistribution = std::uniform_real_distribution<>(-1.0, 1.0);
   static auto wWeightRangeDistribution = std::uniform_int_distribution<>(0, sTotalWeightSize - 1);
-  auto wOffspring = iSource;
-  for (auto wIter = 0; wIter < sTotalNumberOfMutation; ++wIter)
+  for (auto wIter = 0; wIter < sTotalNumberOfWeightMutations; ++wIter)
   {
     auto wIndexToMutate = wWeightRangeDistribution(iRandomNumberGenerator);
     if (wIndexToMutate < sInputToHiddenWeightSize)
     {
-      // TODO: templatize?
-      wOffspring.applyToInputToHiddenWeights([&](Ann::InputToHiddenWeights &iWeights)
+      iAnn.applyToInputToHiddenWeights([&](Ann::InputToHiddenWeights &iWeights)
       {
-        iWeights[wIndexToMutate / sInputLayerSize][wIndexToMutate%sInputLayerSize] += wWeightMutationDistribution(iRandomNumberGenerator);
+        iWeights[wIndexToMutate / sInputLayerSize][wIndexToMutate % sInputLayerSize] += wWeightMutationDistribution(iRandomNumberGenerator);
       });
     }
     else
     {
       wIndexToMutate -= sInputToHiddenWeightSize;
-      wOffspring.applyToHiddenToOutputWeights([&](Ann::HiddenToOutputWeights &iWeights)
+      iAnn.applyToHiddenToOutputWeights([&](Ann::HiddenToOutputWeights &iWeights)
       {
-        iWeights[wIndexToMutate / sHiddenLayerSize][wIndexToMutate%sHiddenLayerSize] += wWeightMutationDistribution(iRandomNumberGenerator);
+        iWeights[wIndexToMutate / sHiddenLayerSize][wIndexToMutate % sHiddenLayerSize] += wWeightMutationDistribution(iRandomNumberGenerator);
       });
     }
   }
+}
+
+template< typename Ann, typename RandomNumberGenerator >
+void mutateBiases(Ann &iAnn, RandomNumberGenerator &iRandomNumberGenerator)
+{
+  static auto wBiasMutationDistribution = std::uniform_real_distribution<>(-1.0, 1.0);
+  static auto wBiasRangeDistribution = std::uniform_int_distribution<>(0, sTotalBiasesSize - 1);
+  for (auto wIter = 0; wIter < sTotalNumberOfBiasesMutations; ++wIter)
+  {
+    auto wIndexToMutate = wBiasRangeDistribution(iRandomNumberGenerator);
+    if (wIndexToMutate < sHiddenLayerSize)
+    {
+      iAnn.applyToHiddenBiases([&](Ann::HiddenBiases &iBiases)
+      {
+        iBiases[wIndexToMutate] += wBiasMutationDistribution(iRandomNumberGenerator);
+      });
+    }
+    else
+    {
+      iAnn.applyToOutputBiases([&](Ann::OutputBiases &iBiases)
+      {
+        iBiases[wIndexToMutate - sHiddenLayerSize] += wBiasMutationDistribution(iRandomNumberGenerator);
+      });
+    }
+  }
+}
+
+template< typename Ann, typename RandomNumberGenerator >
+Ann cloneAndMutate(const Ann &iSource, RandomNumberGenerator &iRandomNumberGenerator)
+{
+  auto wOffspring = iSource;
+  mutateWeights(wOffspring, iRandomNumberGenerator);
+  mutateBiases(wOffspring, iRandomNumberGenerator);
   return wOffspring;
 }
 
