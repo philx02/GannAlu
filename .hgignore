@@ -13,3 +13,4 @@ project-config.jam
 *.pb.cc
 *.pb.h
 *.log
+*.csv
